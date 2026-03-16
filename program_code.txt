@@ -1,0 +1,88 @@
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+#define TRIG 5
+#define ECHO 18
+
+#define RED_LED 25      // LOW level
+#define GREEN_LED 26    // MEDIUM level
+#define BLUE_LED 27     // HIGH level
+
+LiquidCrystal_I2C lcd(0x27,16,2);
+
+long duration;
+float distance;
+
+void setup() {
+
+  Serial.begin(115200);
+
+  pinMode(TRIG, OUTPUT);
+  pinMode(ECHO, INPUT);
+
+  pinMode(RED_LED, OUTPUT);
+  pinMode(GREEN_LED, OUTPUT);
+  pinMode(BLUE_LED, OUTPUT);
+
+  lcd.init();
+  lcd.backlight();
+
+  lcd.setCursor(0,0);
+  lcd.print("Water Level");
+  delay(2000);
+  lcd.clear();
+}
+
+void loop() {
+
+  digitalWrite(TRIG, LOW);
+  delayMicroseconds(2);
+
+  digitalWrite(TRIG, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TRIG, LOW);
+
+  duration = pulseIn(ECHO, HIGH);
+
+  distance = duration * 0.034 / 2;
+
+  Serial.print("Distance: ");
+  Serial.println(distance);
+
+  lcd.setCursor(0,0);
+  lcd.print("Dist:");
+  lcd.print(distance);
+  lcd.print(" cm   ");
+
+  if(distance > 300)   // LOW WATER
+  {
+    digitalWrite(RED_LED, HIGH);
+    digitalWrite(GREEN_LED, LOW);
+    digitalWrite(BLUE_LED, LOW);
+
+    lcd.setCursor(0,1);
+    lcd.print("Level: LOW   ");
+  }
+
+  else if(distance > 100 && distance <= 300)   // MEDIUM WATER
+  {
+    digitalWrite(RED_LED, LOW);
+    digitalWrite(GREEN_LED, HIGH);
+    digitalWrite(BLUE_LED, LOW);
+
+    lcd.setCursor(0,1);
+    lcd.print("Level: MEDIUM");
+  }
+
+  else   // HIGH WATER
+  {
+    digitalWrite(RED_LED, LOW);
+    digitalWrite(GREEN_LED, LOW);
+    digitalWrite(BLUE_LED, HIGH);
+
+    lcd.setCursor(0,1);
+    lcd.print("Level: HIGH  ");
+  }
+
+  delay(500);
+}
